@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Staff Plan Approval | Shepherd</title>
+
+    <style>
+        * { box-sizing: border-box; }
+
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background: #f5f7fb;
+            color: #202433;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 500px;
+            margin: 60px auto;
+            padding: 30px;
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 5px 20px #00000012;
+        }
+
+        h2 {
+            margin: 0 0 25px;
+            text-align: center;
+        }
+
+        .form-group { margin-bottom: 18px; }
+
+        label {
+            display: block;
+            margin-bottom: 7px;
+            font-weight: 600;
+        }
+
+        input, select, textarea {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #d5d8df;
+            border-radius: 10px;
+            font-size: 15px;
+        }
+
+        textarea {
+            resize: vertical;
+            min-height: 100px;
+        }
+
+        input:focus, select:focus, textarea:focus {
+            outline: none;
+            border-color: #4f46e5;
+        }
+
+        button {
+            width: 100%;
+            padding: 13px;
+            border: 0;
+            border-radius: 10px;
+            background: #4f46e5;
+            color: white;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+        button:hover { background: #4338ca; }
+        button:disabled { background: #9ca3af; cursor: not-allowed; }
+
+        .message {
+            margin-top: 20px;
+            padding: 12px;
+            border-radius: 10px;
+            display: none;
+            text-align: center;
+        }
+
+        .success { display: block; background: #dcfce7; color: #166534; }
+        .error { display: block; background: #fee2e2; color: #991b1b; }
+
+        .back {
+            display: block;
+            text-align: center;
+            margin-top: 18px;
+            color: #4f46e5;
+            text-decoration: none;
+            font-size: 14px;
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="container">
+
+    <h2>Staff Plan Approval</h2>
+
+    <form id="approvalForm">
+
+        <div class="form-group">
+            <label for="faculty_id">Faculty ID</label>
+            <input type="text" id="faculty_id" placeholder="Enter faculty ID" required>
+        </div>
+
+        <div class="form-group">
+            <label for="visit_id">Visit ID</label>
+            <input type="number" id="visit_id" placeholder="Enter visit ID" min="1" required>
+        </div>
+
+        <div class="form-group">
+            <label for="status">Status</label>
+            <select id="status" required>
+                <option value="">Select status</option>
+                <option value="approved">Approved</option>
+                <option value="rejected">Rejected</option>
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label for="remarks">Remarks</label>
+            <textarea id="remarks" placeholder="Enter remarks (optional)"></textarea>
+        </div>
+
+        <button type="submit" id="submitButton">Submit</button>
+
+    </form>
+
+    <div id="message" class="message" role="status"></div>
+
+    <a class="back" href="/">API home</a>
+
+</div>
+
+<script>
+const form = document.getElementById('approvalForm');
+const button = document.getElementById('submitButton');
+const message = document.getElementById('message');
+
+form.addEventListener('submit', async e => {
+
+    e.preventDefault();
+
+    message.className = 'message';
+    message.textContent = '';
+
+    button.disabled = true;
+    button.textContent = 'Submitting...';
+
+    const body = new FormData();
+
+    body.append('faculty_id', document.getElementById('faculty_id').value.trim());
+    body.append('visit_id', document.getElementById('visit_id').value.trim());
+    body.append('status', document.getElementById('status').value);
+    body.append('remarks', document.getElementById('remarks').value.trim());
+
+    try {
+
+        const response = await fetch('/api/approve_weekend_plan', {
+            method: 'POST',
+            body: body
+        });
+
+        const data = await response.json();
+
+        message.className = 'message ' + (data.status ? 'success' : 'error');
+        message.textContent = data.message || 'Something went wrong.';
+
+        if (data.status) {
+            form.reset();
+        }
+
+    } catch (error) {
+
+        message.className = 'message error';
+        message.textContent = 'Unable to connect to server.';
+
+    } finally {
+
+        button.disabled = false;
+        button.textContent = 'Submit';
+
+    }
+
+});
+</script>
+
+</body>
+</html>
